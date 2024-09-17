@@ -3,11 +3,14 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
-import Registration from "./Pages/Registration";
-import Login from "./Pages/Login";
+import {BrowserRouter, createBrowserRouter, RouterProvider} from "react-router-dom";
+import Login from "./screens/Login";
+import RegistrationModal from "./modals/RegistrationModal";
+import WalletList from "./screens/WalletList";
+import AddWallet from "./screens/AddWallet";
+import Wallet from "./screens/Wallet";
 
-const RootRoutes = () => {
+/*const RootRoutes = () => {
     //const wallets = useWallets();
 
     const router = createBrowserRouter([
@@ -21,9 +24,21 @@ const RootRoutes = () => {
         },
         {
             path: "/registration",
-            element: <Registration />
+            element: <RegistrationModal />
         },
-/*     {
+        {
+            path: "/walletslist",
+            element: <WalletList />
+        },
+        {
+            path: "/addwallet",
+            element: <AddWallet />
+        },
+        {
+            path: "/wallet",
+            element: <Wallet />
+        }
+     {
                  path: "/walletlist",
                  element: <WalletList />
              },
@@ -44,16 +59,18 @@ const RootRoutes = () => {
              {
                  path: "*",
                  element: <NotFoundScreen />
-             }*/
+             }
     ]);
 
     return <RouterProvider router={router} />
-};
+};*/
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <RootRoutes />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
   </React.StrictMode>
 );
 
