@@ -1,7 +1,7 @@
-import {Button, Card, CardActions, CardContent, CardMedia, Grid, Typography} from "@mui/material";
+import {Button, Card, CardActions, CardContent, CardMedia, Chip, Grid, Typography} from "@mui/material";
 import {useNavigate} from "react-router-dom";
 
-function OneWallet() {
+function OneWallet({name, desc, sharedWallets, money, id}) {
 
     const navigate = useNavigate();
 
@@ -9,18 +9,24 @@ function OneWallet() {
         <Grid item xs={12} md={4} lg={3}>
             <Card>
                 <CardContent>
-                    <Typography variant={"h5"} component={"div"}>
-                        Name
+                    <Typography variant={"h4"} component={"div"}>
+                        {name}
+                    </Typography>
+                    <Typography variant={"h5"}>
+                        {money} HUF
                     </Typography>
                     <Typography variant={"body1"}>
-                        Desc
+                        {desc}
                     </Typography>
-                    <Typography variant={"body2"} sx={{marginTop: "1em"}}>
-                        Shared with: xy, y
+                    <Typography variant={"body2"} component={"div"} sx={{marginTop: "1em"}}>
+                        Shared with:
+                        {sharedWallets.map((e, i) => {
+                            return <Chip key={i} label={e.name} size={"small"} />
+                        })}
                     </Typography>
                 </CardContent>
                 <CardActions>
-                    <Button size={"small"} onClick={() => navigate("/wallet/2")}>Details</Button>
+                    <Button size={"small"} onClick={() => navigate(`/wallet/${id}`)}>Details</Button>
                 </CardActions>
             </Card>
         </Grid>

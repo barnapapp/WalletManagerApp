@@ -3,20 +3,34 @@ import TemplateFormikField from "../components/TemplateFormikField";
 import {useState} from "react";
 import {TextField} from "formik-mui";
 import {Form, Formik} from "formik";
+import {doApiCall} from "../hooks/useApi";
+import addWallet from "../screens/AddWallet";
 
-function AddTransactionModal() {
+function AddTransactionModal({param_id}) {
 
     const [open, setOpen] = useState(false);
     const handleClose = () => setOpen(false);
     const handleOpen = () => setOpen(true);
 
     const fields = [
-        { name: "Name", label: "Name", validate: (values) => {}, component: TextField },
-        { name: "Amount", label: "Amount", validate: (values) => {}, component: TextField }
+        { name: "name", label: "Name", validate: (values) => {}, component: TextField },
+        { name: "amount", label: "Amount", validate: (values) => {}, component: TextField }
     ].map((element, index) => ({
         ...element,
         id: index
     }));
+
+
+    const createTransaction = async (values) => {
+
+        await doApiCall("PUT", "/transactions", (res) => {
+
+            console.log(res);
+        }, (error) => {
+
+            console.log(error);
+        }, {"wallet_id": param_id, "title": values.name, "amount": values.amount});
+    };
 
     return (
         <Container>
@@ -26,10 +40,16 @@ function AddTransactionModal() {
                 onClose={handleClose}
             >
                 <DialogTitle>
-                    Add Transaciton
+                    Add Transaction
                 </DialogTitle>
                 <DialogContent>
-                    <Formik initialValues={{name: '', amount: ''}}>
+                    <Formik initialValues={{name: '', amount: ''}} onSubmit={async (values, actions) => {
+
+                        actions.setSubmitting(true);
+                        await createTransaction(values);
+                        actions.setSubmitting(false);
+                        actions.resetForm();
+                    }}>
                         <Form>
                             <Stack spacing={2} maxWidth={"sm"} sx={{width: "19em"}}>
                                 {fields.map(e => {

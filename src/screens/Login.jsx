@@ -3,14 +3,18 @@ import {Form, Formik} from 'formik';
 import { TextField } from 'formik-mui';
 import TemplateFormikField from "../components/TemplateFormikField";
 import RegistrationModal from "../modals/RegistrationModal";
+import {useAuth} from "../hooks/useAuth";
+import {doApiCall} from "../hooks/useApi";
+import {useNavigate} from "react-router-dom";
 
 
 function Login() {
-
+    const { handleLoginResult } = useAuth();
+    const navigate = useNavigate();
 
     const fields = [
-        { username: "email", label: "Email", validate: (values) => {}, component: TextField },
-        { username: "password", label: "Password", validate: (values) => {}, component: TextField },
+        { name: "name", label: "Name", validate: (value) => {if(value.length <= 6) return "Please add min 6 char"}, component: TextField },
+        { name: "password", label: "Password", validate: (value) => {if(value.length <= 6) return "Please add min 6 char"}, component: TextField },
     ].map((element, index) => ({
         ...element,
         id: index
@@ -18,28 +22,33 @@ function Login() {
 
     const formValidate = (values) => {
 
-        if(!values.username && !values.email && !values.password && !values.repassword) return;
+        if(!values.name && !values.password) return;
         return {};
     }
 
     return (
       <Container sx={{width: "35em"}}>
-          <Formik initialValues={{username: '', email: '', password: '', repassword: ''}}
+          <Formik initialValues={{name: '', password: ''}}
                   validate={formValidate}
-                  onSubmit={(values, actions) => {
+                  onSubmit={async (values, actions) => {
 
                       actions.setSubmitting(true);
-                      setTimeout(() => {
+                      await doApiCall("POST", '/login', (data) => {
 
+                          handleLoginResult(data);
                           actions.setSubmitting(false);
-                          console.log(values);
-                      }, 2000);
+                          navigate("/walletlist");
+                      }, (apiError) => {
+
+                         actions.setFieldError('password', apiError.toString());
+                         actions.setSubmitting(false);
+                      }, values);
                   }}
           >
             <Form>
                 <Stack spacing={2} maxWidth={"sm"} sx={{ margin: "7em auto" }}>
                     {fields.map(e => {
-                        return <TemplateFormikField key={e.id} fieldName={e.username}
+                        return <TemplateFormikField key={e.id} fieldName={e.name}
                                                     labelName={e.label}
                                                     validate={e.validate}
                                                     component={e.component}

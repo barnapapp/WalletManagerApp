@@ -1,31 +1,50 @@
 import {
     Button,
     Container,
-    Grid,
+    Grid, LinearProgress,
     Paper,
     Typography
 } from "@mui/material";
 import AddTransactionModal from "../modals/AddTransactionModal";
+import {useNavigate, useParams} from "react-router-dom";
+import useApi, {doApiCall} from "../hooks/useApi";
 
 function Wallet() {
+    const params = useParams();
+    const navigate = useNavigate();
+    const [wallet, loading, error] = useApi("GET", `/wallet/${params.id}`);
+
+    if(loading) return <LinearProgress />
+
+    const deleteWallet = async () => {
+
+        await doApiCall("DELETE", `/wallet/${params.id}`, (data) => {
+
+            console.log(data);
+            navigate("/walletlist");
+        }, (error) => {
+
+            console.log(error);
+        })
+    }
 
     return (
         <Container>
             <Paper sx={{marginTop: "3em", padding: "1em 1em 1em 1em"}}>
                 <Grid container maxWidth={"lg"} spacing={2}>
                     <Grid item lg={4}>
-                        <Typography variant={"h8"}>Wallet 1</Typography>
+                        <Typography variant={"h2"}>{wallet.name}</Typography>
                     </Grid>
                     <Grid item lg={4}>
-                        <Typography variant={"h8"}>Balance 1000</Typography>
+                        <Typography variant={"h4"}>Balance {wallet.extra.money} HUF</Typography>
                     </Grid>
                     <Grid item lg={4}>
-                        <Button variant={"outlined"} sx={{marginRight: "0.4em"}}>Edit</Button>
-                        <Button variant={"outlined"}>Delete</Button>
+                        <Button variant={"outlined"} sx={{marginRight: "0.4em"}} onClick={() => navigate(`/editwallet/${params.id}`)}>Edit</Button>
+                        <Button variant={"outlined"} onClick={deleteWallet}>Delete</Button>
                     </Grid>
                     <Grid item lg={12}>
                         <Typography variant={"body1"}>
-                            Desc...
+                            {wallet.description}
                         </Typography>
                     </Grid>
                 </Grid>
@@ -36,7 +55,7 @@ function Wallet() {
                         <Typography variant={"h8"}>Transactions</Typography>
                     </Grid>
                     <Grid item lg={3.38}>
-                        <AddTransactionModal />
+                        <AddTransactionModal param_id={params.id} />
                     </Grid>
                     <Grid container maxWidth={"lg"} spacing={2} sx={{padding: "1em 1em 1em 1em"}}>
                         <Grid item lg={2}>5000 Ft</Grid>
@@ -50,6 +69,7 @@ function Wallet() {
                     </Grid>
                 </Grid>
             </Paper>
+            <Button onClick={() => navigate("/walletlist")}>Back to Wallet List</Button>
         </Container>
     )
 }
