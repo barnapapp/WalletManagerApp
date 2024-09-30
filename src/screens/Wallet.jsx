@@ -8,13 +8,19 @@ import {
 import AddTransactionModal from "../modals/AddTransactionModal";
 import {useNavigate, useParams} from "react-router-dom";
 import useApi, {doApiCall} from "../hooks/useApi";
+import {Fragment, useState} from "react";
+import DeleteIcon from '@mui/icons-material/Delete';
+
 
 function Wallet() {
     const params = useParams();
     const navigate = useNavigate();
     const [wallet, loading, error] = useApi("GET", `/wallet/${params.id}`);
+    const [updatedTrans, setUpdatedTrans] = useState(false);
+    const [transactions, loadingTran, errorTran] = useApi("POST", `/transactions`, {"wallet_id": params.id, "limit": 50, "cursor": ""}, [updatedTrans]);
 
-    if(loading) return <LinearProgress />
+
+    if(loading || loadingTran) return <LinearProgress />
 
     const deleteWallet = async () => {
 
@@ -25,7 +31,19 @@ function Wallet() {
         }, (error) => {
 
             console.log(error);
-        })
+        });
+    }
+
+    const deleteTransaction = async (id) => {
+
+        await doApiCall("DELETE", `/transaction/${id}`, (data) => {
+
+            console.log(data);
+            setUpdatedTrans(prev => !prev);
+        }, (error) => {
+
+            console.log(error);
+        });
     }
 
     return (
@@ -55,17 +73,21 @@ function Wallet() {
                         <Typography variant={"h8"}>Transactions</Typography>
                     </Grid>
                     <Grid item lg={3.38}>
-                        <AddTransactionModal param_id={params.id} />
+                        <AddTransactionModal param_id={params.id} setUpdatedTrans={setUpdatedTrans} change={false} data={{}} />
                     </Grid>
-                    <Grid container maxWidth={"lg"} spacing={2} sx={{padding: "1em 1em 1em 1em"}}>
-                        <Grid item lg={2}>5000 Ft</Grid>
-                        <Grid item lg={2}>Dinner</Grid>
-                        <Grid item lg={2}>Magdi</Grid>
-                        <Grid item lg={2}>2024.08.12</Grid>
-                        <Grid item lg={4}>
-                            <Button variant={"outlined"} sx={{marginRight: "0.4em"}}>Delete</Button>
-                            <Button variant={"outlined"}>Edit</Button>
-                        </Grid>
+                    <Grid container maxWidth={"lg"} spacing={2} sx={{padding: "1em 1em 1em 1em", marginTop: "2em"}}>
+                        {transactions.transactions.map((e, i) => {
+                            return (<Fragment key={i}>
+                                    <Grid item lg={2}>{e.amount} HUF</Grid>
+                                    <Grid item lg={2}>{e.extra.item}</Grid>
+                                    <Grid item lg={2}>{e.title}</Grid>
+                                    <Grid item lg={2}>{new Date(e.created_at).toLocaleDateString()}</Grid>
+                                    <Grid item lg={2} sx={{cursor: "pointer"}}>
+                                        <DeleteIcon onClick={() => deleteTransaction(e.id)} />
+                                    </Grid>
+                                    <Grid item lg={2}><AddTransactionModal param_id={params.id} setUpdatedTrans={setUpdatedTrans} change={true} data={e} /></Grid>
+                            </Fragment>)
+                        })}
                     </Grid>
                 </Grid>
             </Paper>

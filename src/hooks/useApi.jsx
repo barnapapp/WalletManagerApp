@@ -7,6 +7,7 @@ let authToken = false;
 
 export const setApiToken = (newToken) => authToken = newToken;
 
+
 export const doApiCall = async (method, uri, onSuccess, onFailure = false, data = undefined) => {
 
     const token = authToken !== false ? `Bearer ${authToken}` : "";
@@ -24,7 +25,7 @@ export const doApiCall = async (method, uri, onSuccess, onFailure = false, data 
         options.headers = {'Authorization': token, "Content-Type": "application/json"};
     }
 
-    await fetch(`${BASE_URL}${uri}`, options).then((res) => {
+    /*await fetch(`${BASE_URL}${uri}`, options).then((res) => {
 
         if(!res.ok) {
             console.log("Request is unsuccessfull");
@@ -41,7 +42,26 @@ export const doApiCall = async (method, uri, onSuccess, onFailure = false, data 
         if(!onFailure) return;
 
         onFailure(err);
-    });
+    });*/
+
+    try {
+
+        const fetchRequest = await fetch(`${BASE_URL}${uri}`, options);
+
+        if(!fetchRequest.ok) {
+            console.log("Request is unsuccesfull");
+            throw new Error(`Request failed with status ${fetchRequest.status}`);
+        }
+
+        const receivedData = await fetchRequest.json();
+        onSuccess(receivedData);
+    } catch (ex) {
+
+        console.log(ex);
+        if(!onFailure) return;
+
+        onFailure(ex);
+    }
 }
 
 function useApi(method, uri, postData = undefined, deps = []) {
@@ -67,6 +87,7 @@ function useApi(method, uri, postData = undefined, deps = []) {
     useEffect(() => {
         apiCallCallBack(postData);
     }, [apiCallCallBack, JSON.stringify(postData), ...deps]);
+
 
     return [data, loading, error, apiCallCallBack];
 }

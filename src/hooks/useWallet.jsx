@@ -5,18 +5,17 @@ import {useNavigate} from "react-router-dom";
 function useWallet(paramId) {
 
     const [currentWalletId, setCurrentWalletId] = useState();
-    const [userSearch, setUserSearch] = useState("");
-    const [name, setName] = useState("");
-    const [money, setMoney] = useState("");
-    const [desc, setDesc] = useState("");
-    const [users, loading, error] = useApi("POST", "/user/list", {"prefix": "", limit: "", "cursor": ""});
+    const [wallet, setWallet] = useState({name: "", desc: "", money: ""});
+    const [walletUpdated, setWalletUpdated] = useState(false);
     const navigate = useNavigate();
+
 
     const createWallet = useCallback(async (data) => {
 
         await doApiCall("PUT", `/wallet`, (res) => {
 
             console.log(res);
+            setWalletUpdated(prev => !prev);
         }, (error) => {
 
             console.log(error);
@@ -27,6 +26,7 @@ function useWallet(paramId) {
 
         await doApiCall("PATCH", `/wallet/${paramId.id}`, (data) => {
 
+            setWalletUpdated(prev => !prev);
             navigate("/walletlist");
             console.log(data);
         }, (error) => {
@@ -36,6 +36,7 @@ function useWallet(paramId) {
     }, []);
 
     const [funcReference, setFuncReference] = useState(() => createWallet);
+
     useEffect(() => {
 
         if(paramId !== undefined) {
@@ -43,9 +44,13 @@ function useWallet(paramId) {
 
                 doApiCall("GET", `/wallet/${paramId}`, (data) => {
 
-                    setName(data.name);
-                    setDesc(data.description);
-                    setMoney(data.extra.money);
+                    const tmpObj = {
+                        name: data.name,
+                        desc: data.description,
+                        money: data.extra.money
+                    };
+
+                    setWallet(tmpObj);
 
                     setFuncReference(() => modifyWallet);
                 }, (error) => {
@@ -56,7 +61,7 @@ function useWallet(paramId) {
         }
     }, []);
 
-    const [wallets, loadingWallet, errorWallet] = useApi("GET", "/wallets", undefined, [createWallet]);
+    const [wallets, loadingWallet, errorWallet] = useApi("GET", "/wallets", undefined, [walletUpdated]);
     const [currentSharedWallets, setCurrentSharedWallets] = useState([]);
 
     useEffect(() => {
@@ -81,10 +86,10 @@ function useWallet(paramId) {
 
             console.log(err);
         }, {"user_id": id});
-    }, []);
+    }, [currentWalletId]);
 
     const sharedWalletToUser = useCallback(async (id) => {
-        console.log(currentWalletId)
+
         await doApiCall("POST", `/wallet/${currentWalletId}/grant_access`, (res) => {
 
             setCurrentSharedWallets(res.access);
@@ -92,31 +97,11 @@ function useWallet(paramId) {
 
             console.log(err);
         }, {"user_id": id});
-    }, [])
-
-    const searchUser = useCallback(async (user) => {
-
-        if(user === "") {
-
-            setUserSearch("");
-        } else {
-
-            await doApiCall("POST", "/user/search", (response) => {
-
-                if(response !== "" && response !== undefined) {
-
-                    const tmpUser = users.users.filter(e => e.name === user);
-                    setUserSearch(tmpUser[0]);
-                }
-            }, (error) => {
-
-                console.log(error.toString());
-            }, {"name": user});
-        }
-    }, []);
+    }, [currentWalletId])
 
 
-    return [setCurrentWalletId, userSearch, name, money, desc, users, loading, funcReference, wallets, loadingWallet, currentSharedWallets, deleteSharedWallet, sharedWalletToUser, searchUser];
+
+    return [setCurrentWalletId, wallet, funcReference, wallets, loadingWallet, currentSharedWallets, deleteSharedWallet, sharedWalletToUser];
 }
 
 export default useWallet;
